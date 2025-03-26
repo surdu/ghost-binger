@@ -1,5 +1,8 @@
 const nodecastor = require("nodecastor");
 const mdns = require("mdns");
+const debug = require("./debug");
+
+const YOUTUBE_APP_ID = "233637DE";
 
 const browser = mdns.createBrowser(mdns.tcp("googlecast"));
 
@@ -9,6 +12,8 @@ browser.on("serviceUp", (service) => {
   if (hasVideo) {
     console.log("Chromecast Found:", service.txtRecord.fn);
 
+    browser.stop();
+
     const device = new nodecastor.CastDevice({
       friendlyName: service.txtRecord.fn,
       address: service.addresses[0],
@@ -16,49 +21,83 @@ browser.on("serviceUp", (service) => {
     });
 
     device.on("connect", () => {
-      device.application("233637DE", (err, app) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-
-        app.join("urn:x-cast:com.google.cast.media", (err, service) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-
-          // Listen for state changes
-          service.on("message", (message) => {
-            const currentTime = new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false, // Use 24-hour format
-            });
-            console.log("Current Time:", currentTime);
-            console.dir(message, { depth: 10 });
-          });
-
-          service.send({ type: "GET_STATUS" }, (err) => {
-            if (err) {
-              console.log("Error sending GET_STATUS command:", err);
-            }
-          });
-
-          // service.send({ type: "QUEUE_UPDATE", jump: 1 }, (err) => {
-          //   if (err) {
-          //     console.log("Error sending GET_STATUS command:", err);
-          //   }
-          // });
-        });
-      });
+      device.on("status", handleStatusChange(device));
+      device.status(handleStatusChange(device));
     });
   }
-
-  browser.stop();
 });
 
 browser.start();
+
+function handleStatusChange(device) {
+  return function (statusOrError, receivedStatus) {
+    if (statusOrError instanceof Error) {
+      console.log("Error getting status:", statusOrError);
+      return;
+    }
+
+    let status = statusOrError;
+
+    if (!status && receivedStatus) {
+      status = receivedStatus;
+    }
+
+    if (status.applications && status.applications.length > 0) {
+      const app = status.applications[0];
+
+      if (app.appId == YOUTUBE_APP_ID) {
+        console.log("YouTube app is running on the Chromecast");
+
+        device.application(YOUTUBE_APP_ID, (err, app) => {
+          if (err) {
+            console.log("Error getting application:", err);
+            return;
+          }
+
+          app.join("urn:x-cast:com.google.cast.media", (err, session) => {
+            if (err) {
+              console.log("Error joining session:", err);
+              return;
+            }
+
+            // Listen for state changes
+            session.on("message", (message) => {
+              const currentTime = new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false, // Use 24-hour format
+              });
+              console.log("Current Time:", currentTime);
+              debug("Message", message);
+
+              if (
+                message.type === "MEDIA_STATUS" &&
+                message.status &&
+                message.status[0]
+              ) {
+                const status = message.status[0];
+                if (
+                  status.playerState === "IDLE" &&
+                  status.idleReason === "FINISHED"
+                ) {
+                  console.log("Got IDLE status with FINISHED reason !!!");
+
+                  session.send({ type: "QUEUE_UPDATE", jump: 1 }, (err) => {
+                    if (err) {
+                      console.log("Error sending QUEUE_UPDATE command:", err);
+                    }
+                  });
+                }
+              }
+            });
+
+            session.send({ type: "GET_STATUS" });
+          });
+        });
+      }
+    }
+  };
+}
 
 function hasVideoCapability(caString) {
   const CapabilityFlags = {
