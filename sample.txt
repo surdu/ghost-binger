@@ -1,0 +1,68 @@
+Current Time: 09:52
+{
+  type: 'mdxSessionStatus',
+  data: {
+    screenId: 'ruti18mg65ptoq63rh1uo8msgj',
+    deviceId: '017ca581-0bcb-43c8-9f20-f46559de0e80'
+  }
+}
+Current Time: 09:52
+{
+  type: 'MEDIA_STATUS',
+  requestId: 0,
+  status: [
+    {
+      mediaSessionId: 1781659145,
+      playbackRate: 1,
+      supportedMediaCommands: 311491,
+      volume: { level: 1, muted: false },
+      playerState: 'IDLE',
+      customData: { playerState: 0 },
+      idleReason: 'FINISHED',
+      currentTime: 1296.041,
+      media: {
+        contentId: 'bkBrgHmc5xc',
+        contentType: 'x-youtube/video',
+        customData: { listId: 'RQ9b3e_C92GnoyoCbNRBd7QFXLys0', currentIndex: 51 },
+        metadata: {
+          metadataType: 0,
+          title: 'Rules of Engagement S05E07',
+          subtitle: 'SpeedRunner',
+          images: [Array]
+        },
+        streamType: 'BUFFERED',
+        duration: 1296.041
+      }
+    }
+  ]
+}
+Current Time: 09:52
+{
+  type: 'MEDIA_STATUS',
+  requestId: 4,
+  status: [
+    {
+      mediaSessionId: 1781659145,
+      playbackRate: 1,
+      supportedMediaCommands: 311491,
+      volume: { level: 1, muted: false },
+      playerState: 'IDLE',
+      customData: { playerState: 0 },
+      idleReason: 'FINISHED',
+      currentTime: 1296.041,
+      media: {
+        contentId: 'bkBrgHmc5xc',
+        contentType: 'x-youtube/video',
+        customData: { listId: 'RQ9b3e_C92GnoyoCbNRBd7QFXLys0', currentIndex: 51 },
+        metadata: {
+          metadataType: 0,
+          title: 'Rules of Engagement S05E07',
+          subtitle: 'SpeedRunner',
+          images: [Array]
+        },
+        streamType: 'BUFFERED',
+        duration: 1296.041
+      }
+    }
+  ]
+}
