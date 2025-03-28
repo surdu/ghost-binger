@@ -1,33 +1,50 @@
 const nodecastor = require("nodecastor");
-const mdns = require("mdns");
+const mdns = require("mdns-js");
 const debug = require("./debug");
 
 const YOUTUBE_APP_ID = "233637DE";
 
-const browser = mdns.createBrowser(mdns.tcp("googlecast"));
+const browser = mdns.createBrowser(
+  new mdns.ServiceType({ name: "googlecast", protocol: "tcp" })
+);
 
-browser.on("serviceUp", (service) => {
-  const hasVideo = hasVideoCapability(service.txtRecord.ca);
-
-  if (hasVideo) {
-    console.log("Chromecast Found:", service.txtRecord.fn);
-
-    browser.stop();
-
-    const device = new nodecastor.CastDevice({
-      friendlyName: service.txtRecord.fn,
-      address: service.addresses[0],
-      port: service.port,
-    });
-
-    device.on("connect", () => {
-      device.on("status", handleStatusChange(device));
-      device.status(handleStatusChange(device));
-    });
-  }
+browser.on("ready", function () {
+  browser.discover();
 });
 
-browser.start();
+browser.on("update", function (service) {
+  if (
+    service.type.length > 0 &&
+    service.type[0].name === "googlecast" &&
+    service.txt
+  ) {
+    const txtRecord = {};
+
+    service.txt.forEach((txt) => {
+      const [key, value] = txt.split("=");
+      txtRecord[key] = value;
+    });
+
+    const hasVideo = hasVideoCapability(txtRecord.ca);
+
+    if (hasVideo) {
+      console.log("Chromecast Found:", txtRecord.fn);
+
+      browser.stop();
+
+      const device = new nodecastor.CastDevice({
+        friendlyName: txtRecord.fn,
+        address: service.addresses[0],
+        port: service.port,
+      });
+
+      device.on("connect", () => {
+        device.on("status", handleStatusChange(device));
+        device.status(handleStatusChange(device));
+      });
+    }
+  }
+});
 
 function handleStatusChange(device) {
   return function (statusOrError, receivedStatus) {

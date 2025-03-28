@@ -9,7 +9,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "mdns": "^2.7.2",
+    "mdns-js": "^1.0.3",
     "nodecastor": "^0.1.9"
   }
 }
