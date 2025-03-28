@@ -82,6 +82,7 @@ function handleStatusChange(device) {
               const currentTime = new Date().toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+                second: "2-digit",
                 hour12: false, // Use 24-hour format
               });
               console.log("Current Time:", currentTime);
